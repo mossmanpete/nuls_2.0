@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 
 import static io.nuls.block.constant.Constant.*;
 import static io.nuls.block.utils.LoggerUtil.Log;
+import static io.nuls.block.utils.LoggerUtil.sendLog;
 
 /**
  * 区块管理模块启动类
@@ -172,7 +173,11 @@ public class BlockBootstrap {
             nodes = NetworkUtil.getAvailableNodes(1);
         }
         Thread.sleep(10000L);
-        nodes.forEach(e -> NetworkUtil.sendToNode(1, new TestMessage(1), e.getId(), "test"));
-
+        TestMessage message = new TestMessage(1);
+        for (Node node : nodes) {
+            String nodeId = node.getId();
+            boolean b = NetworkUtil.sendToNode(1, message, nodeId, "test");
+            sendLog.info("send index:" + message.getIndex() + " to node-" + nodeId + ", chainId:" + 1 + ", success:" + b);
+        }
     }
 }
