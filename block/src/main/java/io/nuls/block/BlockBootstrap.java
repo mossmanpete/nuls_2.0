@@ -35,6 +35,7 @@ import io.nuls.block.utils.ConfigLoader;
 import io.nuls.block.utils.module.NetworkUtil;
 import io.nuls.db.service.RocksDBService;
 import io.nuls.rpc.client.CmdDispatcher;
+import io.nuls.rpc.info.HostInfo;
 import io.nuls.rpc.model.ModuleE;
 import io.nuls.rpc.server.WsServer;
 import io.nuls.rpc.server.runtime.ServerRuntime;
@@ -173,11 +174,11 @@ public class BlockBootstrap {
             nodes = NetworkUtil.getAvailableNodes(1);
         }
         Thread.sleep(10000L);
-        TestMessage message = new TestMessage(1);
+        TestMessage message = new TestMessage(1, HostInfo.getLocalIP());
         for (Node node : nodes) {
             String nodeId = node.getId();
             boolean b = NetworkUtil.sendToNode(1, message, nodeId, "test");
-            sendLog.info("send index:" + message.getIndex() + " to node-" + nodeId + ", chainId:" + 1 + ", success:" + b);
+            sendLog.info("send message(" + message.toString() + ") to " + nodeId + ", " + b);
         }
     }
 }
