@@ -105,7 +105,8 @@ public class BlockBootstrap {
             NetworkUtil.register();
             Log.info("service start");
 //            onlyRunWhenTest();
-            messageTest();
+//            messageTest();
+            timeTest();
 
             //开启区块同步线程
 //            ThreadUtils.createAndRunThread("block-synchronizer", BlockSynchronizer.getInstance());
@@ -179,6 +180,22 @@ public class BlockBootstrap {
             String nodeId = node.getId();
             boolean b = NetworkUtil.sendToNode(1, message, nodeId, "test");
             sendLog.info("send message(" + message.toString() + ") to " + nodeId + ", " + b);
+        }
+    }
+
+    /**
+     * todo 正式版本删除
+     */
+    public static void timeTest() throws InterruptedException {
+        List<Node> nodes = NetworkUtil.getAvailableNodes(1);
+        while (nodes.size() < 3) {
+            Thread.sleep(1000L);
+            nodes = NetworkUtil.getAvailableNodes(1);
+        }
+        Thread.sleep(10000L);
+        while (true) {
+            System.out.println("system time-" + System.currentTimeMillis() + ", NetworkUtil.currentTime-" + NetworkUtil.currentTime());
+            Thread.sleep(1000L);
         }
     }
 }
