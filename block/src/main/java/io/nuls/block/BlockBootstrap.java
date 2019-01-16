@@ -167,10 +167,11 @@ public class BlockBootstrap {
      */
     public static void messageTest() throws InterruptedException {
         List<Node> nodes = NetworkUtil.getAvailableNodes(1);
-        while (nodes.size() < 1) {
+        while (nodes.size() < 3) {
             Thread.sleep(1000L);
             nodes = NetworkUtil.getAvailableNodes(1);
         }
+        Thread.sleep(10000L);
         nodes.forEach(e -> NetworkUtil.sendToNode(1, new TestMessage(1), e.getId(), "test"));
 
     }

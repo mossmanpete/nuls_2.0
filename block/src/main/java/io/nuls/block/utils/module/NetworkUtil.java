@@ -28,7 +28,6 @@ import io.nuls.rpc.info.Constants;
 import io.nuls.rpc.model.ModuleE;
 import io.nuls.rpc.model.message.Response;
 import io.nuls.tools.crypto.HexUtil;
-import org.spongycastle.asn1.cmc.CMCStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,9 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.nuls.block.constant.CommandConstant.*;
-import static io.nuls.block.utils.LoggerUtil.Log;
-import static io.nuls.block.utils.LoggerUtil.messageLog;
-import static org.spongycastle.asn1.cmc.CMCStatus.success;
+import static io.nuls.block.utils.LoggerUtil.*;
 
 /**
  * 调用网络模块接口的工具
@@ -142,9 +139,7 @@ public class NetworkUtil {
             params.put("nodes", nodeId);
             params.put("messageBody", HexUtil.encode(message.serialize()));
             params.put("command", command);
-            boolean success = CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_sendPeersMsg", params).isSuccess();
-            messageLog.info("send " + message.getClass().getName() + " to node-" + nodeId + ", chainId:" + chainId + ", success:" + success);
-            return success;
+            return CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_sendPeersMsg", params).isSuccess();
         } catch (Exception e) {
             Log.error(e);
             return false;
