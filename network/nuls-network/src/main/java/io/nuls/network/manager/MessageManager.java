@@ -192,45 +192,46 @@ public class MessageManager extends BaseManager{
                 return;
             }
             BaseMessage message=MessageManager.getInstance().getMessageInstance(header.getCommandStr());
-            if(null != message) {
-                byteBuffer.setCursor(0);
-                while (!byteBuffer.isFinished()) {
-                    Log.debug((isServer?"Server":"Client")+":----receive message-- magicNumber:"+ header.getMagicNumber()+"==CMD:"+header.getCommandStr());
-                        Log.debug("==============================Network module self message");
-                        BaseMeesageHandlerInf handler = MessageHandlerFactory.getInstance().getHandler(message);
-                        message = byteBuffer.readNulsData(message);
-                        NetworkEventResult result = handler.recieve(message, node.getId(), isServer);
-                        if(!result.isSuccess()){
-                            Log.error("receiveMessage fail:"+result.getErrorCode().getMsg());
-                        }
-                }
-            } else{
+            byteBuffer.setCursor(0);
+            while (!byteBuffer.isFinished()) {
+                if (null != message) {
+                    Log.debug((isServer ? "Server" : "Client") + ":----receive message-- magicNumber:" + header.getMagicNumber() + "==CMD:" + header.getCommandStr());
+                    Log.debug("==============================Network module self message");
+                    BaseMeesageHandlerInf handler = MessageHandlerFactory.getInstance().getHandler(message);
+                    message = byteBuffer.readNulsData(message);
+                    NetworkEventResult result = handler.recieve(message, node.getId(), isServer);
+                    if (!result.isSuccess()) {
+                        Log.error("receiveMessage fail:" + result.getErrorCode().getMsg());
+                    }
+
+                } else {
                     //外部消息，转外部接口
-                    Log.debug("==============================receive other module message, hash-" +NulsDigestData.calcDigestData(payLoadBody).getDigestHex() + "node-" + node.getId());
-                    long magicNum=header.getMagicNumber();
-                    int chainId=NodeGroupManager.getInstance().getChainIdByMagicNum(magicNum);
-                    Map<String,Object> paramMap = new HashMap<>();
-                    paramMap.put("chainId",chainId);
-                    paramMap.put("nodeId",node.getId());
-                    paramMap.put("messageBody",HexUtil.byteToHex(payLoadBody));
-                    Collection<ProtocolRoleHandler> protocolRoleHandlers =  getProtocolRoleHandlerMap(header.getCommandStr());
-                    if(null == protocolRoleHandlers){
-                        Log.error("unknown mssages. cmd={},may be handle had not be registered to network.",header.getCommandStr());
-                    }else{
-                        Log.debug("==============================other module message protocolRoleHandlers-size:{}",protocolRoleHandlers.size());
-                        for(ProtocolRoleHandler protocolRoleHandler:protocolRoleHandlers) {
-                             try {
-                                 Log.debug("request：{}=={}",protocolRoleHandler.getRole(),protocolRoleHandler.getHandler());
-                                  Response response = CmdDispatcher.requestAndResponse(protocolRoleHandler.getRole(), protocolRoleHandler.getHandler(), paramMap);
-                                  Log.debug("response：" + response);
-                              }catch(Exception e){
-                                  e.printStackTrace();
-                              }
+                    Log.debug("==============================receive other module message, hash-" + NulsDigestData.calcDigestData(payLoadBody).getDigestHex() + "node-" + node.getId());
+                    long magicNum = header.getMagicNumber();
+                    int chainId = NodeGroupManager.getInstance().getChainIdByMagicNum(magicNum);
+                    Map<String, Object> paramMap = new HashMap<>();
+                    paramMap.put("chainId", chainId);
+                    paramMap.put("nodeId", node.getId());
+                    paramMap.put("messageBody", HexUtil.byteToHex(payLoadBody));
+                    Collection<ProtocolRoleHandler> protocolRoleHandlers = getProtocolRoleHandlerMap(header.getCommandStr());
+                    if (null == protocolRoleHandlers) {
+                        Log.error("unknown mssages. cmd={},may be handle had not be registered to network.", header.getCommandStr());
+                    } else {
+                        Log.debug("==============================other module message protocolRoleHandlers-size:{}", protocolRoleHandlers.size());
+                        for (ProtocolRoleHandler protocolRoleHandler : protocolRoleHandlers) {
+                            try {
+                                Log.debug("request：{}=={}", protocolRoleHandler.getRole(), protocolRoleHandler.getHandler());
+                                Response response = CmdDispatcher.requestAndResponse(protocolRoleHandler.getRole(), protocolRoleHandler.getHandler(), paramMap);
+                                Log.debug("response：" + response);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
-                    Log.debug("s=={}==={}",byteBuffer.getPayload().length,byteBuffer.getCursor());
+                    Log.debug("s=={}==={}", byteBuffer.getPayload().length, byteBuffer.getCursor());
                     byteBuffer.setCursor(payLoad.length);
-                    Log.debug("e=={}==={}",byteBuffer.getPayload().length,byteBuffer.getCursor());
+                    Log.debug("e=={}==={}", byteBuffer.getPayload().length, byteBuffer.getCursor());
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -354,7 +355,7 @@ public class MessageManager extends BaseManager{
             BaseNulsData body = message.getMsgBody();
             header.setPayloadLength(body.size());
             ChannelFuture future = node.getChannel().writeAndFlush(Unpooled.wrappedBuffer(message.serialize()));
-            if (asyn) {
+            if (!asyn) {
                 future.await();
                 Log.debug("{}==================ChannelFuture1",TimeService.currentTimeMillis());
                 if (!future.isSuccess()) {
@@ -388,11 +389,14 @@ public class MessageManager extends BaseManager{
             try {
                 ChannelFuture future = node.getChannel().writeAndFlush(Unpooled.wrappedBuffer(message));
                 Log.debug("==================writeAndFlush end");
-                if (asyn) {
+                if (!asyn) {
                     Log.debug("{}==========B========ChannelFuture",TimeService.currentTimeMillis());
                     future.await();
                     boolean success = future.isSuccess();
                     Log.debug("==========B========{}success?{}",node.getId(),success);
+                    if (!success) {
+                        return new NetworkEventResult(false, NetworkErrorCode.NET_BROADCAST_FAIL);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -108,8 +108,8 @@ public class BlockBootstrap {
             NetworkUtil.register();
             Log.info("service start");
 //            onlyRunWhenTest();
-//            messageTest();
-            timeTest();
+            messageTest();
+//            timeTest();
 
             //开启区块同步线程
 //            ThreadUtils.createAndRunThread("block-synchronizer", BlockSynchronizer.getInstance());
@@ -181,7 +181,7 @@ public class BlockBootstrap {
      */
     public static void messageTest() throws InterruptedException {
         List<Node> nodes = NetworkUtil.getAvailableNodes(1);
-        while (nodes.size() < 3) {
+        while (nodes.size() < 1) {
             Thread.sleep(1000L);
             nodes = NetworkUtil.getAvailableNodes(1);
         }
