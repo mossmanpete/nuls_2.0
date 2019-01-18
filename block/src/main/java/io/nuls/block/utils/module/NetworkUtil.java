@@ -28,6 +28,7 @@ import io.nuls.rpc.info.Constants;
 import io.nuls.rpc.model.ModuleE;
 import io.nuls.rpc.model.message.Response;
 import io.nuls.tools.crypto.HexUtil;
+import org.spongycastle.asn1.cmc.CMCStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +36,9 @@ import java.util.List;
 import java.util.Map;
 
 import static io.nuls.block.constant.CommandConstant.*;
-import static io.nuls.block.utils.LoggerUtil.*;
+import static io.nuls.block.utils.LoggerUtil.Log;
+import static io.nuls.block.utils.LoggerUtil.messageLog;
+import static org.spongycastle.asn1.cmc.CMCStatus.success;
 
 /**
  * 调用网络模块接口的工具
@@ -76,6 +79,7 @@ public class NetworkUtil {
             }
             return nodes;
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error(e);
             return List.of();
         }
@@ -94,6 +98,7 @@ public class NetworkUtil {
 
             CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_reconnect", params);
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error(e);
         }
     }
@@ -115,9 +120,10 @@ public class NetworkUtil {
             params.put("messageBody", HexUtil.encode(message.serialize()));
             params.put("command", command);
             boolean success = CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_broadcast", params).isSuccess();
-            messageLog.info("broadcast " + message.getClass().getName() +", chainId:" + chainId + ", success:" + success);
+            messageLog.debug("broadcast " + message.getClass().getName() +", chainId:" + chainId + ", success:" + success);
             return success;
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error(e);
             return false;
         }
@@ -139,8 +145,11 @@ public class NetworkUtil {
             params.put("nodes", nodeId);
             params.put("messageBody", HexUtil.encode(message.serialize()));
             params.put("command", command);
-            return CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_sendPeersMsg", params).isSuccess();
+            boolean success = CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_sendPeersMsg", params).isSuccess();
+            messageLog.debug("send " + message.getClass().getName() + " to node-" + nodeId + ", chainId:" + chainId + ", success:" + success);
+            return success;
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error(e);
             return false;
         }
@@ -206,6 +215,7 @@ public class NetworkUtil {
 
             CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_updateNodeInfo", params);
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error(e);
         }
     }
@@ -224,6 +234,7 @@ public class NetworkUtil {
             Map result = (Map) responseData.get("nw_currentTimeMillis");
             return (Long) result.get("currentTimeMillis");
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error("get nw_currentTimeMillis fail");
         }
         return System.currentTimeMillis();
@@ -247,8 +258,11 @@ public class NetworkUtil {
                 cmds.add(cmd);
             }
             map.put("protocolCmds", cmds);
-            return CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_protocolRegister", map).isSuccess();
+            boolean success = CmdDispatcher.requestAndResponse(ModuleE.NW.abbr, "nw_protocolRegister", map).isSuccess();
+            Log.debug("get nw_protocolRegister " + success);
+            return success;
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error("get nw_protocolRegister fail");
         }
         return false;

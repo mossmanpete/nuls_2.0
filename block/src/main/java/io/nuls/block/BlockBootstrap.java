@@ -35,6 +35,8 @@ import io.nuls.block.utils.ConfigLoader;
 import io.nuls.block.utils.module.NetworkUtil;
 import io.nuls.db.service.RocksDBService;
 import io.nuls.rpc.client.CmdDispatcher;
+import io.nuls.rpc.client.WsClient;
+import io.nuls.rpc.client.runtime.ClientRuntime;
 import io.nuls.rpc.info.HostInfo;
 import io.nuls.rpc.model.ModuleE;
 import io.nuls.rpc.server.WsServer;
@@ -92,6 +94,7 @@ public class BlockBootstrap {
             //加载配置
             ConfigLoader.load();
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error("error occur when init, " + e.getMessage());
         }
     }
@@ -126,6 +129,7 @@ public class BlockBootstrap {
 //            ScheduledThreadPoolExecutor dbSizeExecutor = ThreadUtils.createScheduledThreadPool(1, new NulsThreadFactory("db-size-monitor"));
 //            dbSizeExecutor.scheduleWithFixedDelay(ChainsDbSizeMonitor.getInstance(), 0, 10, TimeUnit.SECONDS);
         } catch (Exception e) {
+            e.printStackTrace();
             Log.error("error occur when start, " + e.getMessage());
         }
     }
@@ -139,9 +143,16 @@ public class BlockBootstrap {
                 }
                 BlockHeader header = context.getLatestBlock().getHeader();
                 Log.info("chainId:" + chainId + ", latestHeight:" + header.getHeight() + ", txCount:" + header.getTxCount() + ", hash:" + header.getHash());
+
+                WsClient wsClient = ClientRuntime.WS_CLIENT_MAP.get(ClientRuntime.getRemoteUri(ModuleE.NW.abbr));
+                System.out.println("wsClient.getAckQueue().size()-" + wsClient.getAckQueue().size());
+                System.out.println("wsClient.getNegotiateResponseQueue().size()-" + wsClient.getNegotiateResponseQueue().size());
+                System.out.println("wsClient.getResponseAutoQueue().size()-" + wsClient.getResponseAutoQueue().size());
+                System.out.println("wsClient.getResponseManualQueue().size()-" + wsClient.getResponseManualQueue().size());
                 try {
                     Thread.sleep(10000L);
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
                     Log.error(e);
                 }
             }
